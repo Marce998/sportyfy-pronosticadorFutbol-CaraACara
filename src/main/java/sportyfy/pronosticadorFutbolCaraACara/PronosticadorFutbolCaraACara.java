@@ -26,7 +26,7 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
 
         Equipo equipoGanador = pronosticarCaraACara(local,visitante,enfrentamientosEntreSi);
 
-        return equipoGanador!=null ? new Pronostico(equipoGanador) : new PronosticoNull();
+        return equipoGanador!=null ? new Pronostico(equipoGanador, partidoFuturo) : new PronosticoNull(partidoFuturo);
     }
 
     private void validarDatos(Equipo local, Equipo visitante, List<PartidoJugado> partidosJugados) {
