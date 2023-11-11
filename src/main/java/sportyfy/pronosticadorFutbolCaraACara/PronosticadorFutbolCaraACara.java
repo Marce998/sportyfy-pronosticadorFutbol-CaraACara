@@ -1,68 +1,67 @@
 package sportyfy.pronosticadorFutbolCaraACara;
 
-import sportyfy.core.Pronosticador;
-import sportyfy.core.Pronostico;
-import sportyfy.core.PronosticoNull;
-import sportyfy.core.entidades.equipo.Equipo;
-import sportyfy.core.entidades.partido.PartidoFuturo;
-import sportyfy.core.entidades.partido.PartidoJugado;
 
-import java.util.List;
-import java.util.stream.Collectors;
+
+import lombok.Data;
+import sportyfy.core.Pronosticador;
+import sportyfy.core.entidades.equipo.Equipo;
+import sportyfy.core.entidades.partido.Partido;
+import sportyfy.core.entidades.resultado.Resultado;
+import sportyfy.core.servicios.factorys.ResultadoPartidoFactory;
+import sportyfy.core.servicios.parser.EquiposParser;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PronosticadorFutbolCaraACara implements Pronosticador {
 
+    private Map<Partido,Resultado> partidosHistoricos;
+    private final Logger logger = Logger.getLogger(PronosticadorFutbolCaraACara.class.getName());
+
+    private CalculadorEnfrentamientosCaraACara calculador;
+
+    public PronosticadorFutbolCaraACara () {
+        iniciar();
+    }
     @Override
-    public Pronostico pronosticar(PartidoFuturo partidoFuturo, List<PartidoJugado> partidosJugados) {
-        Equipo local = partidoFuturo.getEquipoLocal();
-        Equipo visitante = partidoFuturo.getEquipoVisitante();
+    public void iniciar() {
+        try {
+            Set<Equipo> equipos = new EquiposParser().crearEquiposDesdeArchivos("src/main/resources/datos/partidos");
+            partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado("src/main/resources/datos/partidos",
+                    new ObjectMapper(), equipos);
+            Set<Partido> partidos = partidosHistoricos.keySet();
+            for(Partido partido : partidos){
+                System.out.println(partido.getLocal().getNombre() + "," + partido.getVisitante().getNombre());
+            }
 
-        validarDatos(local,visitante,partidosJugados);
-
-        List<PartidoJugado> enfrentamientosEntreSi = ultimosEnfrentamientosEntreAmbosEquipos(local,visitante,partidosJugados);
-        if(enfrentamientosEntreSi.isEmpty()){
-            throw new IllegalArgumentException("No se encontraron partidos entre ambos equipos para realizar el pronóstico");
+            calculador = new CalculadorEnfrentamientosCaraACara();
+        } catch (IOException e) {
+            logger.severe("Error al leer los archivos de partidos");
+            throw new RuntimeException(e);
         }
-
-        Equipo equipoGanador = pronosticarCaraACara(local,visitante,enfrentamientosEntreSi);
-
-        return equipoGanador!=null ? new Pronostico(equipoGanador, partidoFuturo) : new PronosticoNull(partidoFuturo);
-    }
-
-    private void validarDatos(Equipo local, Equipo visitante, List<PartidoJugado> partidosJugados) {
-        if(local==null || visitante==null){
-            throw new IllegalArgumentException("No se puede realizar el pronóstico con equipos nulos");
-        }
-
-        if(partidosJugados.isEmpty()){
-            throw new IllegalArgumentException("No hay información de partidos para realizar el pronóstico");
-        }
-    }
-
-    private List<PartidoJugado> ultimosEnfrentamientosEntreAmbosEquipos(Equipo local, Equipo visitante, List<PartidoJugado> partidosJugados) {
-        return  partidosJugados.stream()
-                .filter(partido -> partido.participa(local) && partido.participa(visitante))
-                .collect(Collectors.toList());
-    }
-
-    private Equipo pronosticarCaraACara(Equipo local, Equipo visitante, List<PartidoJugado> enfrentamientosEntreSi) {
-        int ganadosLocal = partidosGanadosEquipo(local,enfrentamientosEntreSi);
-        int ganadosVisitante = partidosGanadosEquipo(visitante,enfrentamientosEntreSi);
-
-        if(ganadosLocal > ganadosVisitante) return local;
-        if(ganadosVisitante > ganadosLocal) return visitante;
-        return null;
-
-    }
-
-    private int partidosGanadosEquipo(Equipo equipo, List<PartidoJugado> enfrentamientosEntreSi) {
-        return (int) enfrentamientosEntreSi.stream().filter(partido -> partido.obtenerGanador() != null
-                && partido.obtenerGanador().equals(equipo)).count();
     }
 
     @Override
-    public String obtenerDeporte() {
+    public Resultado pronosticar(Partido partido) {
+        return calculador.ganadorEnfrentamientosCaraACara(partido,partidosHistoricos);
+    }
+
+    @Override
+    public String getDeporte() {
         return "Fútbol";
+    }
+
+    @Override
+    public Set<Equipo> getEquipos() {
+        Set<Equipo> equipos = new HashSet<>();
+        for (Partido partido : partidosHistoricos.keySet()) {
+            equipos.add(partido.getLocal());
+            equipos.add(partido.getVisitante());
+        }
+        return equipos;
     }
 
 }
