@@ -1,7 +1,5 @@
 package sportyfy.pronosticadorFutbolCaraACara;
 
-
-
 import lombok.Data;
 import sportyfy.core.Pronosticador;
 import sportyfy.core.entidades.equipo.Equipo;
@@ -13,30 +11,24 @@ import sportyfy.core.servicios.parser.EquiposParser;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PronosticadorFutbolCaraACara implements Pronosticador {
 
-    private Map<Partido,Resultado> partidosHistoricos;
+    private Map<Partido, Resultado> partidosHistoricos;
     private final Logger logger = Logger.getLogger(PronosticadorFutbolCaraACara.class.getName());
 
     private CalculadorEnfrentamientosCaraACara calculador;
 
-    public PronosticadorFutbolCaraACara () {
-        iniciar();
-    }
     @Override
-    public void iniciar() {
+    public void iniciar(String rutacCarpetaPartidos) {
         try {
-            Set<Equipo> equipos = new EquiposParser().crearEquiposDesdeArchivos("src/main/resources/datos/partidos");
-            partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado("src/main/resources/datos/partidos",
+            Set<Equipo> equipos = new EquiposParser().crearEquiposDesdeArchivos(rutacCarpetaPartidos);
+            partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado(rutacCarpetaPartidos,
                     new ObjectMapper(), equipos);
-            Set<Partido> partidos = partidosHistoricos.keySet();
-            for(Partido partido : partidos){
-                System.out.println(partido.getLocal().getNombre() + "," + partido.getVisitante().getNombre());
-            }
-
             calculador = new CalculadorEnfrentamientosCaraACara();
         } catch (IOException e) {
             logger.severe("Error al leer los archivos de partidos");
@@ -46,7 +38,7 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
 
     @Override
     public Resultado pronosticar(Partido partido) {
-        return calculador.ganadorEnfrentamientosCaraACara(partido,partidosHistoricos);
+        return calculador.ganadorEnfrentamientosCaraACara(partido, partidosHistoricos);
     }
 
     @Override
@@ -56,12 +48,9 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
 
     @Override
     public Set<Equipo> getEquipos() {
-        Set<Equipo> equipos = new HashSet<>();
-        for (Partido partido : partidosHistoricos.keySet()) {
-            equipos.add(partido.getLocal());
-            equipos.add(partido.getVisitante());
-        }
-        return equipos;
+        return partidosHistoricos.keySet().stream()
+                .flatMap(partido -> Stream.of(partido.getLocal(), partido.getVisitico()))
+                .collect(Collectors.toSet());
     }
 
 }
