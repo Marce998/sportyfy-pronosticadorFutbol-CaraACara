@@ -26,9 +26,8 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
     @Override
     public void iniciar(String rutacCarpetaPartidos) {
         try {
-            Set<Equipo> equipos = new EquiposParser().crearEquiposDesdeArchivos(rutacCarpetaPartidos);
             partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado(rutacCarpetaPartidos,
-                    new ObjectMapper(), equipos);
+                    new ObjectMapper());
             calculador = new CalculadorEnfrentamientosCaraACara();
         } catch (IOException e) {
             logger.severe("Error al leer los archivos de partidos");
