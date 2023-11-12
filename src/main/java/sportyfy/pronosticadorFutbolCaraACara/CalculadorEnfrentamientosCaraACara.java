@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class CalculadorEnfrentamientosCaraACara {
 
-    Map<Partido, Resultado> partidosFiltrados = new HashMap<Partido, Resultado>();
+    Map<Partido, Resultado> partidosFiltrados = new HashMap<>();
 
     public Resultado ganadorEnfrentamientosCaraACara(Partido partido, Map<Partido, Resultado> partidos) {
         Equipo local = partido.getLocal();
