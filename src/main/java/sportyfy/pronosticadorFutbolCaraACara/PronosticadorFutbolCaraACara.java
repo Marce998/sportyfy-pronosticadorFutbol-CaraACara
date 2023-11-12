@@ -49,7 +49,7 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
     @Override
     public Set<Equipo> getEquipos() {
         return partidosHistoricos.keySet().stream()
-                .flatMap(partido -> Stream.of(partido.getLocal(), partido.getVisitico()))
+                .flatMap(partido -> Stream.of(partido.getLocal(), partido.getVisitante()))
                 .collect(Collectors.toSet());
     }
 
