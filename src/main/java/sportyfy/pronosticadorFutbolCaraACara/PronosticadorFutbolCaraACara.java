@@ -20,22 +20,17 @@ public class PronosticadorFutbolCaraACara implements Pronosticador {
     private Map<Partido, Resultado> partidosHistoricos;
     private final Logger logger = Logger.getLogger(PronosticadorFutbolCaraACara.class.getName());
 
-    private CalculadorEnfrentamientosCaraACara calculador;
+    private CalculadorEnfrentamientosCaraACara calculador = new CalculadorEnfrentamientosCaraACara();
 
     @Override
     public void iniciar(String rutacCarpetaPartidos) {
-        try {
-            partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado(rutacCarpetaPartidos,
-                    new ObjectMapper());
-            calculador = new CalculadorEnfrentamientosCaraACara();
-        } catch (IOException e) {
-            logger.severe("Error al leer los archivos de partidos");
-            throw new RuntimeException(e);
-        }
+        partidosHistoricos = ResultadoPartidoFactory.crearPartidosResultado(rutacCarpetaPartidos,
+                new ObjectMapper());
     }
 
     @Override
     public Resultado pronosticar(Partido partido) {
+        System.out.println("Pronosticando partido: " + partido);
         return calculador.ganadorEnfrentamientosCaraACara(partido, partidosHistoricos);
     }
 
