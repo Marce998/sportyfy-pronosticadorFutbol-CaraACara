@@ -1,13 +1,11 @@
 package sportyfy.pronosticadorFutbolCaraACara;
 
-import lombok.Data;
 import sportyfy.core.Pronosticador;
 import sportyfy.core.entidades.equipo.Equipo;
 import sportyfy.core.entidades.partido.Partido;
 import sportyfy.core.entidades.resultado.Resultado;
 import sportyfy.core.servicios.factorys.ResultadoPartidoFactory;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
